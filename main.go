@@ -81,8 +81,6 @@ func handleMessages() {
 
 		msg := <-broadcast
 
-		//fmt.Println(msg)
-
 		regExMesg := msg.Message
 
 		cmds:= []string{"!!age;", "!!name;", "!!hello;"}
