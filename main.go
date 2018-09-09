@@ -1,34 +1,60 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
-	"fmt"
 	"regexp"
 
 	"github.com/gorilla/websocket"
+	_ "github.com/lib/pq"
 )
 
 type userInfo struct {
-	Bio			string `json:"bio"`
-	Age			string `json:"age"`
-	Location	string `json:"location"`
+	Bio      string `json:"bio"`
+	Age      string `json:"age"`
+	Location string `json:"location"`
 }
 
-var clients = make(map[*websocket.Conn]bool)	//connected clients
-var broadcast = make(chan Message)		//broadcast channel
+var clients = make(map[*websocket.Conn]bool) //connected clients
+var broadcast = make(chan Message)           //broadcast channel
 
 //configure the upgrader
 var upgrader = websocket.Upgrader{}
 
 type Message struct {
-	Email		string `json:"email"`
-	Username	string `json:"username"`
-	Message		string `json:"message"`
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Message  string `json:"message"`
 }
 
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "seshat"
+	password = "r8*W6F#8xE"
+	dbname   = "hermes"
+)
+
 func main() {
-	fs:= http.FileServer(http.Dir("./public"))
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	db, dbErr := sql.Open("postgres", psqlInfo)
+	if dbErr != nil {
+		panic(dbErr)
+	}
+
+	dbErr = db.Ping()
+	if dbErr != nil {
+		panic(dbErr)
+	}
+
+	defer db.Close()
+
+	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
 
 	http.HandleFunc("/ws", handleConnections)
@@ -43,9 +69,7 @@ func main() {
 		log.Fatal("ListenAndServe: ", err)
 	}
 
-
 }
-
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
 	//Upgrade initial GET request to a websocket
@@ -70,7 +94,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			delete(clients, ws)
 			break
 		}
-		
+
 		broadcast <- msg
 	}
 }
@@ -83,10 +107,10 @@ func handleMessages() {
 
 		regExMesg := msg.Message
 
-		cmds:= []string{"!!age;", "!!name;", "!!hello;"}
+		cmds := []string{"!!age;", "!!name;", "!!hello;"}
 
 		for _, cmds := range cmds {
-		regExMesg = replaceCommands(regExMesg, cmds)
+			regExMesg = replaceCommands(regExMesg, cmds)
 		}
 
 		msg.Message = regExMesg
@@ -103,7 +127,7 @@ func handleMessages() {
 	}
 }
 
-func replaceCommands (src string, regEx string) string {
+func replaceCommands(src string, regEx string) string {
 
 	//MustCompile simplifies safe initialization of global variables holding compiled regular expressions
 	r, _ := regexp.Compile(regEx)
@@ -117,4 +141,3 @@ func replaceCommands (src string, regEx string) string {
 	return tmp
 
 }
-
