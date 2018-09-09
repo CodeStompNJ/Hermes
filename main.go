@@ -3,9 +3,17 @@ package main
 import (
 	"log"
 	"net/http"
+	"fmt"
+	"regexp"
 
 	"github.com/gorilla/websocket"
 )
+
+type userInfo struct {
+	Bio			string `json:"bio"`
+	Age			string `json:"age"`
+	Location	string `json:"location"`
+}
 
 var clients = make(map[*websocket.Conn]bool)	//connected clients
 var broadcast = make(chan Message)		//broadcast channel
@@ -70,7 +78,19 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 func handleMessages() {
 	for {
 		//Grab the next message from the broadcast channel
+
 		msg := <-broadcast
+
+		regExMesg := msg.Message
+
+		cmds:= []string{"!!age;", "!!name;", "!!hello;"}
+
+		for _, cmds := range cmds {
+		regExMesg = replaceCommands(regExMesg, cmds)
+		}
+
+		msg.Message = regExMesg
+
 		//Send it to every client that is connected
 		for client := range clients {
 			err := client.WriteJSON(msg)
@@ -82,3 +102,19 @@ func handleMessages() {
 		}
 	}
 }
+
+func replaceCommands (src string, regEx string) string {
+
+	//MustCompile simplifies safe initialization of global variables holding compiled regular expressions
+	r, _ := regexp.Compile(regEx)
+
+	//replace values with what we specify using the regex above
+
+	tmp := r.ReplaceAllString(src, "*cmd*")
+
+	fmt.Println(tmp)
+
+	return tmp
+
+}
+
