@@ -47,12 +47,12 @@ func main() {
 		panic(dbErr)
 	}
 
+	defer db.Close()
+
 	dbErr = db.Ping()
 	if dbErr != nil {
 		panic(dbErr)
 	}
-
-	defer db.Close()
 
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
