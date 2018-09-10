@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
+	//"regexp"
 
 	"github.com/gorilla/websocket"
 	_ "github.com/lib/pq"
@@ -38,6 +38,9 @@ const (
 )
 
 func main() {
+
+	demo()
+
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
@@ -68,76 +71,5 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
-
-}
-
-func handleConnections(w http.ResponseWriter, r *http.Request) {
-	//Upgrade initial GET request to a websocket
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	//Close the connection when the function returns
-	defer ws.Close()
-
-	//Register clients
-	clients[ws] = true
-
-	for {
-		var msg Message
-
-		//Read in a new message as JSON and map it to the Message object
-		err := ws.ReadJSON(&msg)
-		if err != nil {
-			log.Printf("error: %v", err)
-			delete(clients, ws)
-			break
-		}
-
-		broadcast <- msg
-	}
-}
-
-func handleMessages() {
-	for {
-		//Grab the next message from the broadcast channel
-
-		msg := <-broadcast
-
-		regExMesg := msg.Message
-
-		cmds := []string{"!!age;", "!!name;", "!!hello;"}
-
-		for _, cmds := range cmds {
-			regExMesg = replaceCommands(regExMesg, cmds)
-		}
-
-		msg.Message = regExMesg
-
-		//Send it to every client that is connected
-		for client := range clients {
-			err := client.WriteJSON(msg)
-			if err != nil {
-				log.Printf("error: %v", err)
-				client.Close()
-				delete(clients, client)
-			}
-		}
-	}
-}
-
-func replaceCommands(src string, regEx string) string {
-
-	//MustCompile simplifies safe initialization of global variables holding compiled regular expressions
-	r, _ := regexp.Compile(regEx)
-
-	//replace values with what we specify using the regex above
-
-	tmp := r.ReplaceAllString(src, "*cmd*")
-
-	fmt.Println(tmp)
-
-	return tmp
 
 }
