@@ -12,7 +12,7 @@ Starting chat application CODENAME HERMES
     Postgres + PGAdmin
 3. Using PGAdmin or otherwise, setup database:
     A. create user `seshat` with admin rights.
-        ![seshat user setup](https://github.com/CodeStompNJ/Hermes/blob/master/images/etup_database-user_seshat.png?raw=true)
+        ![seshat user setup](https://github.com/CodeStompNJ/Hermes/blob/master/images/setup_database-user_seshat.png?raw=true )
     B. create table `hermes` with user `seshat`.
         ![hermes database setup](https://github.com/CodeStompNJ/Hermes/blob/master/images/setup_database_hermes.png?raw=true)
 
