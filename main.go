@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	pg "./postgres"
+	server "./processing"
 
-	"github.com/gorilla/websocket"
 	_ "github.com/lib/pq"
 )
 
@@ -16,22 +16,9 @@ type userInfo struct {
 	Location string `json:"location"`
 }
 
-var clients = make(map[*websocket.Conn]bool) //connected clients
-var broadcast = make(chan Message)           //broadcast channel
-
-//configure the upgrader
-var upgrader = websocket.Upgrader{}
-
-type Message struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Message  string `json:"message"`
-	Group    string `json:"group"`
-}
-
 func main() {
 
-	demo()
+	server.Demo()
 
 	pg.OpenDBConnection()
 	pg.SetupDB()
@@ -40,11 +27,11 @@ func main() {
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
 
-	http.HandleFunc("/ws", handleConnections)
-	http.HandleFunc("/history", sampleHistory)
+	http.HandleFunc("/ws", server.HandleConnections)
+	http.HandleFunc("/history", server.SampleHistory)
 
 	//start listening for incoming chat messages
-	go handleMessages()
+	go server.HandleMessages()
 
 	//start the server on local host port 8000 and log any errors
 	log.Println("https server started on :8000")

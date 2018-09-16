@@ -1,28 +1,42 @@
-package main
+package processing
 
 import (
 	//"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"encoding/json"
-	//"github.com/gorilla/mux"
 
+	"github.com/gorilla/websocket"
+	//"github.com/gorilla/mux"
 	//"github.com/gorilla/websocket"
 )
 
 type Todo struct {
-    Name      string
-    Completed bool
+	Name      string
+	Completed bool
 }
 
 type Todos []Todo
 
-func demo() {
-    fmt.Println("READING FRMO ANOTHER FILE")
+var clients = make(map[*websocket.Conn]bool) //connected clients
+var broadcast = make(chan Message)           //broadcast channel
+
+type Message struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Message  string `json:"message"`
+	Group    string `json:"group"`
 }
 
-func handleConnections(w http.ResponseWriter, r *http.Request) {
+//configure the upgrader
+var upgrader = websocket.Upgrader{}
+
+func Demo() {
+	fmt.Println("READING FRMO ANOTHER FILE")
+}
+
+func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	//Upgrade initial GET request to a websocket
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -50,7 +64,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleMessages() {
+func HandleMessages() {
 	for {
 		//Grab the next message from the broadcast channel
 
@@ -78,11 +92,11 @@ func handleMessages() {
 	}
 }
 
-func sampleHistory(w http.ResponseWriter, r *http.Request) {
-    todos := Todos{
-        Todo{Name: "Write presentation"},
-        Todo{Name: "Host meetup"},
-    }
+func SampleHistory(w http.ResponseWriter, r *http.Request) {
+	todos := Todos{
+		Todo{Name: "Write presentation"},
+		Todo{Name: "Host meetup"},
+	}
 
-    json.NewEncoder(w).Encode(todos)
+	json.NewEncoder(w).Encode(todos)
 }
