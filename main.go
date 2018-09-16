@@ -1,12 +1,12 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/gorilla/websocket"
+	pg "./postgres"
+	server "./processing"
+
 	_ "github.com/lib/pq"
 )
 
@@ -16,55 +16,22 @@ type userInfo struct {
 	Location string `json:"location"`
 }
 
-var clients = make(map[*websocket.Conn]bool) //connected clients
-var broadcast = make(chan Message)           //broadcast channel
-
-//configure the upgrader
-var upgrader = websocket.Upgrader{}
-
-type Message struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Message  string `json:"message"`
-	Group	 string `json:"group"`
-}
-
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "seshat"
-	password = "r8*W6F#8xE"
-	dbname   = "hermes"
-)
-
 func main() {
 
-	demo()
+	server.Demo()
 
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-
-	db, dbErr := sql.Open("postgres", psqlInfo)
-	if dbErr != nil {
-		panic(dbErr)
-	}
-
-	defer db.Close()
-
-	dbErr = db.Ping()
-	if dbErr != nil {
-		panic(dbErr)
-	}
+	pg.OpenDBConnection()
+	pg.SetupDB()
+	defer pg.CloseDBConnection()
 
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
 
-	http.HandleFunc("/ws", handleConnections)
-	http.HandleFunc("/history", sampleHistory)
+	http.HandleFunc("/ws", server.HandleConnections)
+	http.HandleFunc("/history", server.SampleHistory)
 
 	//start listening for incoming chat messages
-	go handleMessages()
+	go server.HandleMessages()
 
 	//start the server on local host port 8000 and log any errors
 	log.Println("https server started on :8000")
