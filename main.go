@@ -1,11 +1,12 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"regexp"
+
+	pg "./postgres"
 
 	"github.com/gorilla/websocket"
 	_ "github.com/lib/pq"
@@ -29,30 +30,10 @@ type Message struct {
 	Message  string `json:"message"`
 }
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "seshat"
-	password = "r8*W6F#8xE"
-	dbname   = "hermes"
-)
-
 func main() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-
-	db, dbErr := sql.Open("postgres", psqlInfo)
-	if dbErr != nil {
-		panic(dbErr)
-	}
-
-	defer db.Close()
-
-	dbErr = db.Ping()
-	if dbErr != nil {
-		panic(dbErr)
-	}
+	pg.OpenDBConnection()
+	pg.SetupDB()
+	defer pg.CloseDBConnection()
 
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
