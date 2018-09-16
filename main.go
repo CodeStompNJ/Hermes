@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	//"regexp"
 
 	"github.com/gorilla/websocket"
 	_ "github.com/lib/pq"
@@ -27,6 +26,7 @@ type Message struct {
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Message  string `json:"message"`
+	Group	 string `json:"group"`
 }
 
 const (
@@ -61,6 +61,7 @@ func main() {
 	http.Handle("/", fs)
 
 	http.HandleFunc("/ws", handleConnections)
+	http.HandleFunc("/history", sampleHistory)
 
 	//start listening for incoming chat messages
 	go handleMessages()

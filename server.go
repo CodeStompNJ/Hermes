@@ -5,9 +5,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"encoding/json"
+	//"github.com/gorilla/mux"
 
 	//"github.com/gorilla/websocket"
 )
+
+type Todo struct {
+    Name      string
+    Completed bool
+}
+
+type Todos []Todo
 
 func demo() {
     fmt.Println("READING FRMO ANOTHER FILE")
@@ -67,4 +76,13 @@ func handleMessages() {
 			}
 		}
 	}
+}
+
+func sampleHistory(w http.ResponseWriter, r *http.Request) {
+    todos := Todos{
+        Todo{Name: "Write presentation"},
+        Todo{Name: "Host meetup"},
+    }
+
+    json.NewEncoder(w).Encode(todos)
 }
