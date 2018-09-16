@@ -7,10 +7,12 @@ new Vue({
         chatContent: '', // A running list of chat messages displayed on the screen
         email: null, // Email address used for grabbing an avatar
         username: null, // Our username
+        group: null, //group we want to join
         joined: false // True if email and username have been filled in
     },
 
 created: function() {
+
         var self = this;
         this.ws = new WebSocket('ws://' + window.location.host + '/ws');
         this.ws.addEventListener('message', function(e) {
@@ -33,11 +35,23 @@ methods: {
                     JSON.stringify({
                         email: this.email,
                         username: this.username,
+                        group: this.group,
                         message: $('<p>').html(this.newMsg).text() // Strip out html
                     }
                 ));
                 this.newMsg = ''; // Reset newMsg
             }
+        },
+
+        history: function() {
+            debugger;
+            axios.get('/history')
+                .then((response) => {
+                    debugger;
+                })
+                .catch((error) => {
+                    debugger;
+                });
         },
 
 join: function () {
@@ -51,6 +65,7 @@ join: function () {
             }
             this.email = $('<p>').html(this.email).text();
             this.username = $('<p>').html(this.username).text();
+            this.group = $('<p>').html(this.group).text();
             this.joined = true;
         },
 gravatarURL: function(email) {
