@@ -8,12 +8,12 @@ func CreateRoom(name string, description string) {
 	INSERT INTO chatroom (name, description)
 	VALUES ($1, $2)
 	RETURNING id`
-	id := 0
+	var id int
 	err := database.QueryRow(sqlStatement, name, description).Scan(&id)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("New record ID is:", id)
+	fmt.Println("New chatroom ID is:", id)
 
 	return
 }

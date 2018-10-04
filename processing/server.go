@@ -36,6 +36,18 @@ func Demo() {
 	fmt.Println("READING FRMO ANOTHER FILE")
 }
 
+func SetupRouting() {
+	fs := http.FileServer(http.Dir("./public"))
+	http.Handle("/", fs)
+
+	http.HandleFunc("/ws", HandleConnections)
+	// group routing
+	http.HandleFunc("/history", SampleHistory)
+
+	// message routing
+	http.HandleFunc("/messages", MessageHandler)
+}
+
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	//Upgrade initial GET request to a websocket
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -99,4 +111,8 @@ func SampleHistory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(todos)
+}
+
+func MessageHandler(w http.ResponseWriter, r *http.Request) {
+
 }
