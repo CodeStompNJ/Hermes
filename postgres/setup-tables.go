@@ -59,5 +59,22 @@ func createTables() {
 	if err != nil {
 		panic(err)
 	}
+
+	/**
+	 *Creating User Table
+	 **/
+	createQry = `
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL,
+        firstname TEXT,
+        lastname TEXT,
+        email TEXT NOT NULL,
+        created_at TIMESTAMP with time zone DEFAULT current_timestamp
+    )`
+	_, err = database.Exec(createQry)
+	if err != nil {
+		panic(err)
+	}
 	return
 }

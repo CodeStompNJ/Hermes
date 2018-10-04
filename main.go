@@ -18,8 +18,6 @@ type userInfo struct {
 
 func main() {
 
-	server.Demo()
-
 	pg.OpenDBConnection()
 	pg.SetupDB()
 	defer pg.CloseDBConnection()
