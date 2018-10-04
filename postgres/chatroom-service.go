@@ -15,7 +15,6 @@ func CreateRoom(name string, description string) {
 	}
 	fmt.Println("New record ID is:", id)
 
-	return
 }
 
 // func GetDefaultRoom() {
