@@ -9,7 +9,7 @@ import (
 
 const (
 	host     = "localhost"
-	port     = 5432
+	port     = 5433
 	user     = "seshat"
 	password = "r8*W6F#8xE"
 	dbname   = "hermes"

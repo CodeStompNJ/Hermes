@@ -115,3 +115,22 @@ func GetMessagesForUserAndRoom(userID int, chatroomID int) {
 	}
 	return
 }
+
+
+//deleting message verification to be added
+func DeleteMessage(messageID int) {
+	sqlStatement := `
+		DELETE FROM messages
+		WHERE id = $1;
+	`
+	rows, err := database.Query(sqlStatement, messageID)
+	if err != nil {
+		panic(err)
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+
+}

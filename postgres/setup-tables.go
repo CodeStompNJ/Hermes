@@ -21,7 +21,7 @@ func createTables() {
 	* Chatroom setup
 	 */
 	fmt.Println("creating chatroom table...")
-	_, err := database.Exec("DROP TABLE IF EXISTS chatroom")
+	_, err := database.Exec("DROP TABLE IF EXISTS chatroom cascade")
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +42,7 @@ func createTables() {
 	* Messages setup
 	 */
 	fmt.Println("creating messages table...")
-	_, err = database.Exec("DROP TABLE IF EXISTS messages")
+	_, err = database.Exec("DROP TABLE IF EXISTS messages cascade")
 	if err != nil {
 		panic(err)
 	}
@@ -76,5 +76,34 @@ func createTables() {
 	if err != nil {
 		panic(err)
 	}
+
+
+	//junction table for users and chatroom for many to many relationship
+	fmt.Println("creating user/chatroom junction table...")
+	_, err = database.Exec("DROP TABLE IF EXISTS junctionUC")
+	if err != nil {
+		panic(err)
+	}
+
+	createQry = `
+	CREATE TABLE IF NOT EXISTS junctionUC (
+		
+		    UserID int NOT NULL,
+		    ChatroomID int NOT NULL,
+		    CONSTRAINT PK_junctionUC PRIMARY KEY
+		    (
+		        UserID,
+		        ChatroomID
+		    ),
+		    FOREIGN KEY (UserID) REFERENCES users (id),
+		    FOREIGN KEY (ChatroomID) REFERENCES chatroom (id)
+		)
+
+	`
+	_, err = database.Exec(createQry)
+	if err != nil {
+		panic(err)
+	}
+
 	return
 }
