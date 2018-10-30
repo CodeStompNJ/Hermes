@@ -10,11 +10,13 @@ id SERIAL PRIMARY KEY,
 		created_at TIMESTAMP with time zone DEFAULT current_timestamp
 */
 type Message struct {
+	Text       string
 	ID         int
-	chatroomID int
-	userID     int
-	text       string
+	ChatroomID int
+	UserID     int
 }
+
+type Messages []Message
 
 // CreateMessage - create a new message
 func CreateMessage(text string, chatroomID int, userID int) int {
@@ -32,8 +34,8 @@ func CreateMessage(text string, chatroomID int, userID int) int {
 	return id
 }
 
-// GetMessagesForRoom - get all messages for a room
-func GetMessagesForRoom(chatroomID int) {
+// GetMessagesForRoom - get all messages for a room, return a slice of messages
+func GetMessagesForRoom(chatroomID int) Messages{
 	sqlStatement := `
 	SELECT id, user_id, chatroom_id, text FROM messages WHERE chatroom_id=$1
 	`
@@ -43,21 +45,29 @@ func GetMessagesForRoom(chatroomID int) {
 		panic(err)
 	}
 	defer rows.Close()
+	//create slice of messages to return
+	var s Messages
+	//count := 0
+
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.ID, &message.userID, &message.chatroomID, &message.text)
+		err = rows.Scan(&message.ID, &message.UserID, &message.ChatroomID, &message.Text)
 		if err != nil {
 			// handle this error
 			panic(err)
 		}
-		fmt.Println(message)
+
+		s = append(s, message)
+		//fmt.Println(message)
 	}
+
+	//count++
 	// get any error encountered during iteration
 	err = rows.Err()
 	if err != nil {
 		panic(err)
 	}
-	return
+	return s
 }
 
 // GetMessagesForUser - get all messages for user
@@ -73,7 +83,7 @@ func GetMessagesForUser(userID int) {
 	defer rows.Close()
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.ID, &message.userID, &message.chatroomID, &message.text)
+		err = rows.Scan(&message.ID, &message.UserID, &message.ChatroomID, &message.Text)
 		if err != nil {
 			// handle this error
 			panic(err)
@@ -101,7 +111,7 @@ func GetMessagesForUserAndRoom(userID int, chatroomID int) {
 	defer rows.Close()
 	for rows.Next() {
 		var message Message
-		err = rows.Scan(&message.ID, &message.userID, &message.chatroomID, &message.text)
+		err = rows.Scan(&message.ID, &message.UserID, &message.ChatroomID, &message.Text)
 		if err != nil {
 			// handle this error
 			panic(err)

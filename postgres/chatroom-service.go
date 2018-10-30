@@ -89,7 +89,7 @@ func DoesUserBelongtoGroup(idExist int) bool{
 	sqlStatement := `
 	SELECT * FROM junctionUC
 	WHERE id = $1;`
-	res, err := database.Exec(sqlStatement, idEdit)
+	res, err := database.Exec(sqlStatement, idExist)
 	if err != nil {
 	  panic(err)
 	}
