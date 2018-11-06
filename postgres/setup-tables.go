@@ -63,6 +63,12 @@ func createTables() {
 	/**
 	 *Creating User Table
 	 **/
+	fmt.Println("creating users table...")
+	_, err = database.Exec("DROP TABLE IF EXISTS users cascade")
+	if err != nil {
+		panic(err)
+	}
+
 	createQry = `
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -76,7 +82,6 @@ func createTables() {
 	if err != nil {
 		panic(err)
 	}
-
 
 	//junction table for users and chatroom for many to many relationship
 	fmt.Println("creating user/chatroom junction table...")
