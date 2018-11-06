@@ -4,15 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/lib/pq"
-)
+	util "../utilities"
 
-const (
-	host     = "localhost"
-	port     = 5433
-	user     = "seshat"
-	password = "r8*W6F#8xE"
-	dbname   = "hermes"
+	_ "github.com/lib/pq" // db connection
 )
 
 var initialized = false
@@ -20,9 +14,14 @@ var database *sql.DB
 
 // OpenDBConnection - open connection to db
 func OpenDBConnection() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		util.GetEnv("POSTGRES_HOST", "localhost"),
+		util.GetEnv("POSTGRES_PORT", "5433"),
+		util.GetEnv("HERMES_USER", "seshat"),
+		util.GetEnv("HERMES_PASS", "*"),
+		util.GetEnv("HERMES_DB_NAME", "hermes"))
+
+	fmt.Println(psqlInfo)
 
 	db, dbErr := sql.Open("postgres", psqlInfo)
 	if dbErr != nil {
