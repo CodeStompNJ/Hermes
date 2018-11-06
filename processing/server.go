@@ -95,8 +95,13 @@ func HandleMessages() {
 			regExMesg = replaceCommands(regExMesg, cmds)
 		}
 
+		//retrieve user
+		//retrieve group ?
+
 		//Probably should deal with regex outside of server.go
 		msg.Message = regExMesg
+
+		pg.CreateMessage(msg.Message, 1, 1)
 
 		//Send it to every client that is connected
 		for client := range clients {
