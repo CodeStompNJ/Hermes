@@ -9,7 +9,10 @@ import (
 func SetupDB() {
 	if initialized {
 		createTables()
-		CreateRoom("default", "a default table")
+		CreateRoom("default", "a default room")
+		CreateRoom("extra", "an extra room")
+		fmt.Println("creating users now")
+		CreateMockUsers()
 		SetupMockMessages()
 	} else {
 		fmt.Println("Table can't be initialized: DB is not running!")
@@ -53,7 +56,9 @@ func createTables() {
 		chatroom_id INTEGER NOT NULL,
 		user_id INTEGER NOT NULL,
 		text TEXT NOT NULL,
-		created_at TIMESTAMP with time zone DEFAULT current_timestamp
+		created_at TIMESTAMP with time zone DEFAULT current_timestamp,
+		FOREIGN KEY (chatroom_id) REFERENCES chatroom (id),
+		FOREIGN KEY (user_id) REFERENCES users (id)
 	)`
 	_, err = database.Exec(createQry)
 	if err != nil {
@@ -76,7 +81,6 @@ func createTables() {
 	if err != nil {
 		panic(err)
 	}
-
 
 	//junction table for users and chatroom for many to many relationship
 	fmt.Println("creating user/chatroom junction table...")

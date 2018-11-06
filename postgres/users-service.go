@@ -8,16 +8,17 @@ func CreateUser(username string, firstname string, lastname string, email string
 	INSERT INTO users (username, firstname, lastname, email)
 	VALUES ($1, $2, $3, $4)
 	RETURNING id`
-	id := 0
-	err := database.QueryRow(sqlStatement, username, firstname, lastname, email)
+	var id int
+	err := database.QueryRow(sqlStatement, username, firstname, lastname, email).Scan(&id)
 	if err != nil {
+		fmt.Println("user failed to create: ", sqlStatement)
 		panic(err)
 	}
-	fmt.Println("New record ID is:", id)
+	fmt.Println("New user record ID is:", id)
 
 }
 
-func EditUser(idEdit int ,usernameEdit string, firstnameEdit string, lastnameEdit string, emailEdit string) {
+func EditUser(idEdit int, usernameEdit string, firstnameEdit string, lastnameEdit string, emailEdit string) {
 	sqlStatement := `
 	UPDATE users
 	SET username = $2, firstname = $3, lastname = $4, email = $5
@@ -31,13 +32,13 @@ func EditUser(idEdit int ,usernameEdit string, firstnameEdit string, lastnameEdi
 
 }
 
-func DeleteUser(idEdit int){
+func DeleteUser(idEdit int) {
 	sqlStatement := `
 	DELETE FROM users
 	WHERE id = $1;`
 	_, err := database.Exec(sqlStatement, idEdit)
 	if err != nil {
-	  panic(err)
+		panic(err)
 	}
 
 }
@@ -51,15 +52,14 @@ func DoesUserExist(idEdit int) bool {
 	WHERE id = $1;`
 	res, err := database.Exec(sqlStatement, idEdit)
 	if err != nil {
-	  panic(err)
+		panic(err)
 	}
 
 	count, err := res.RowsAffected()
 	if err != nil {
- 		panic(err)
+		panic(err)
 	}
 	fmt.Println(count)
-
 
 	return flag
 }

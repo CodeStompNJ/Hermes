@@ -35,7 +35,7 @@ func CreateMessage(text string, chatroomID int, userID int) int {
 }
 
 // GetMessagesForRoom - get all messages for a room, return a slice of messages
-func GetMessagesForRoom(chatroomID int) Messages{
+func GetMessagesForRoom(chatroomID int) Messages {
 	sqlStatement := `
 	SELECT id, user_id, chatroom_id, text FROM messages WHERE chatroom_id=$1
 	`
@@ -126,7 +126,6 @@ func GetMessagesForUserAndRoom(userID int, chatroomID int) {
 	return
 }
 
-
 //deleting message verification to be added
 func DeleteMessage(messageID int) {
 	sqlStatement := `
@@ -141,6 +140,5 @@ func DeleteMessage(messageID int) {
 	if err != nil {
 		panic(err)
 	}
-
 
 }

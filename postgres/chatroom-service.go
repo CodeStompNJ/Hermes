@@ -42,18 +42,18 @@ func LatestRoom(userID int) {
 }
 
 //delete chatroom ID
-func DeleteChatroom(idEdit int){
+func DeleteChatroom(idEdit int) {
 	sqlStatement := `
 	DELETE FROM chatroom
 	WHERE id = $1;`
 	_, err := database.Exec(sqlStatement, idEdit)
 	if err != nil {
-	  panic(err)
+		panic(err)
 	}
 
 }
 
-//add user to junction table, 
+//add user to junction table,
 func CreateJoin(userID int, chatroomID int) {
 	sqlStatement := `
 	INSERT INTO junctionUC (userID, chatroomID)
@@ -75,15 +75,15 @@ func DeleteJoin(idEdit int) {
 	WHERE is = $1`
 	_, err := database.Exec(sqlStatement, idEdit)
 	if err != nil {
-	  panic(err)
+		panic(err)
 	}
 
-}//no reason to edit ittems in the junction table right now
+} //no reason to edit ittems in the junction table right now
 
 //edit chatroom
 
 //does chatroom exist
-func DoesUserBelongtoGroup(idExist int) bool{
+func DoesUserBelongtoGroup(idExist int) bool {
 	flag := true
 
 	sqlStatement := `
@@ -91,16 +91,14 @@ func DoesUserBelongtoGroup(idExist int) bool{
 	WHERE id = $1;`
 	res, err := database.Exec(sqlStatement, idExist)
 	if err != nil {
-	  panic(err)
+		panic(err)
 	}
 
 	count, err := res.RowsAffected()
 	if err != nil {
- 		panic(err)
+		panic(err)
 	}
 	fmt.Println(count)
 
-
 	return flag
 }
-
