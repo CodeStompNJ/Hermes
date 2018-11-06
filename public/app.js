@@ -66,7 +66,7 @@ join: function () {
             this.email = $('<p>').html(this.email).text();
             this.username = $('<p>').html(this.username).text();
             this.group = $('<p>').html(this.group).text();
-            this.joined = true;
+            if (this.joined = true);
         },
 gravatarURL: function(email) {
             return 'http://www.gravatar.com/avatar/' + CryptoJS.MD5(email);

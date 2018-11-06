@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
 	pg "../postgres"
 
 	"github.com/gorilla/websocket"
@@ -16,13 +17,14 @@ import (
 type Todo struct {
 	Name      string
 	Completed bool
-	Num		int
+	Num       int
 }
 
+//Todos - this is a thing
 type Todos []Todo
 
 var clients = make(map[*websocket.Conn]bool) //connected clients
-var broadcast = make(chan MessageTest)           //broadcast channel
+var broadcast = make(chan MessageTest)       //broadcast channel
 
 type MessageTest struct {
 	Email    string `json:"email"`
@@ -109,10 +111,10 @@ func HandleMessages() {
 }
 
 func GroupHistory(w http.ResponseWriter, r *http.Request) {
-	todos := Todos{
-		Todo{Name: "Write presentation", Num: 1},
-		Todo{Name: "Host meetup", Num: 2},
-	}
+	// todos := Todos{
+	// 	Todo{Name: "Write presentation", Num: 1},
+	// 	Todo{Name: "Host meetup", Num: 2},
+	// }
 
 	/*sample2 := pg.Messages{
 		pg.Message{ID: 1, text: "Pog"},
@@ -125,29 +127,29 @@ func GroupHistory(w http.ResponseWriter, r *http.Request) {
 	//fmt.Printf(string(sample))
 	fmt.Printf("%v", sample)
 
-	json.NewEncoder(w).Encode(todos)
+	//json.NewEncoder(w).Encode(todos)
 	json.NewEncoder(w).Encode(sample)
 	//json.NewEncoder(w).Encode(sample3)
 
-	fmt.Printf("DOING IT")
+	//fmt.Printf("DOING IT")
 
 	pagesJson, err := json.Marshal(sample)
-    if err != nil {
-        log.Fatal("Cannot encode to JSON ", err)
-    }
-    fmt.Printf("%s", pagesJson)
+	if err != nil {
+		log.Fatal("Cannot encode to JSON ", err)
+	}
+	fmt.Printf("%s", pagesJson)
 
-    // pagesJson, err = json.Marshal(sample2)
-    // if err != nil {
-    //     log.Fatal("Cannot encode to JSON ", err)
-    // }
-    // fmt.Printf("%s", pagesJson)
+	// pagesJson, err = json.Marshal(sample2)
+	// if err != nil {
+	//     log.Fatal("Cannot encode to JSON ", err)
+	// }
+	// fmt.Printf("%s", pagesJson)
 
-    // pagesJson, err = json.Marshal(sample3)
-    // if err != nil {
-    //     log.Fatal("Cannot encode to JSON ", err)
-    // }
-    // fmt.Printf("%s", pagesJson)
+	// pagesJson, err = json.Marshal(sample3)
+	// if err != nil {
+	//     log.Fatal("Cannot encode to JSON ", err)
+	// }
+	// fmt.Printf("%s", pagesJson)
 }
 
 func MessageHandler(w http.ResponseWriter, r *http.Request) {
