@@ -35,3 +35,16 @@ func SetupMockMessages() {
 		fmt.Println("Table can't be initialized: DB is not running!")
 	}
 }
+
+// CreateMockUsers - mock users
+func CreateMockUsers() {
+	if initialized {
+		fmt.Println("creating users")
+		CreateUser("jbond", "James", "Bond", "james.bond@mail.me.the.stuff.com")
+		CreateUser("freeman", "Mr", "Freeman", "freedman@themail-house.com")
+		CreateUser("dennis", "the", "menace", "dman@housing.com")
+		fmt.Println("creating users done")
+	} else {
+		fmt.Println("Table can't be initialized: DB is not running!")
+	}
+}
