@@ -16,10 +16,12 @@ var database *sql.DB
 func OpenDBConnection() {
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		util.GetEnv("POSTGRES_HOST", "localhost"),
-		util.GetEnv("POSTGRES_PORT", "5432"),
+		util.GetEnv("POSTGRES_PORT", "5433"),
 		util.GetEnv("HERMES_USER", "seshat"),
-		util.GetEnv("HERMES_PASS", ""),
+		util.GetEnv("HERMES_PASS", "*"),
 		util.GetEnv("HERMES_DB_NAME", "hermes"))
+
+	fmt.Println(psqlInfo)
 
 	db, dbErr := sql.Open("postgres", psqlInfo)
 	if dbErr != nil {

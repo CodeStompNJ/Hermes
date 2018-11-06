@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 
+	pg "../postgres"
+
 	"github.com/gorilla/websocket"
 	//"github.com/gorilla/mux"
 	//"github.com/gorilla/websocket"
@@ -15,14 +17,16 @@ import (
 type Todo struct {
 	Name      string
 	Completed bool
+	Num       int
 }
 
+//Todos - this is a thing
 type Todos []Todo
 
 var clients = make(map[*websocket.Conn]bool) //connected clients
-var broadcast = make(chan Message)           //broadcast channel
+var broadcast = make(chan MessageTest)       //broadcast channel
 
-type Message struct {
+type MessageTest struct {
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Message  string `json:"message"`
@@ -42,7 +46,7 @@ func SetupRouting() {
 
 	http.HandleFunc("/ws", HandleConnections)
 	// group routing
-	http.HandleFunc("/history", SampleHistory)
+	http.HandleFunc("/history", GroupHistory)
 
 	// message routing
 	http.HandleFunc("/messages", MessageHandler)
@@ -62,7 +66,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	clients[ws] = true
 
 	for {
-		var msg Message
+		var msg MessageTest
 
 		//Read in a new message as JSON and map it to the Message object
 		err := ws.ReadJSON(&msg)
@@ -84,12 +88,14 @@ func HandleMessages() {
 
 		regExMesg := msg.Message
 
+		//gross
 		cmds := []string{"!!age;", "!!name;", "!!hello;"}
 
 		for _, cmds := range cmds {
 			regExMesg = replaceCommands(regExMesg, cmds)
 		}
 
+		//Probably should deal with regex outside of server.go
 		msg.Message = regExMesg
 
 		//Send it to every client that is connected
@@ -104,13 +110,46 @@ func HandleMessages() {
 	}
 }
 
-func SampleHistory(w http.ResponseWriter, r *http.Request) {
-	todos := Todos{
-		Todo{Name: "Write presentation"},
-		Todo{Name: "Host meetup"},
-	}
+func GroupHistory(w http.ResponseWriter, r *http.Request) {
+	// todos := Todos{
+	// 	Todo{Name: "Write presentation", Num: 1},
+	// 	Todo{Name: "Host meetup", Num: 2},
+	// }
 
-	json.NewEncoder(w).Encode(todos)
+	/*sample2 := pg.Messages{
+		pg.Message{ID: 1, text: "Pog"},
+		pg.Message{ID: 2, text: "Champ" },
+	}
+	sample3 := pg.Message{ID: 1, text: "Hello"}*/
+	//pass in group ID from somewhere
+	fmt.Printf("LUL")
+	sample := pg.GetMessagesForRoom(1)
+	//fmt.Printf(string(sample))
+	fmt.Printf("%v", sample)
+
+	//json.NewEncoder(w).Encode(todos)
+	json.NewEncoder(w).Encode(sample)
+	//json.NewEncoder(w).Encode(sample3)
+
+	//fmt.Printf("DOING IT")
+
+	pagesJson, err := json.Marshal(sample)
+	if err != nil {
+		log.Fatal("Cannot encode to JSON ", err)
+	}
+	fmt.Printf("%s", pagesJson)
+
+	// pagesJson, err = json.Marshal(sample2)
+	// if err != nil {
+	//     log.Fatal("Cannot encode to JSON ", err)
+	// }
+	// fmt.Printf("%s", pagesJson)
+
+	// pagesJson, err = json.Marshal(sample3)
+	// if err != nil {
+	//     log.Fatal("Cannot encode to JSON ", err)
+	// }
+	// fmt.Printf("%s", pagesJson)
 }
 
 func MessageHandler(w http.ResponseWriter, r *http.Request) {
