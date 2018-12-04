@@ -13,7 +13,7 @@ type Message struct {
 	Text       string
 	ID         int
 	ChatroomID int
-	UserID     int
+	UserID     string
 }
 
 type Messages []Message
@@ -37,7 +37,11 @@ func CreateMessage(text string, chatroomID int, userID int) int {
 // GetMessagesForRoom - get all messages for a room, return a slice of messages
 func GetMessagesForRoom(chatroomID int) Messages {
 	sqlStatement := `
-	SELECT id, user_id, chatroom_id, text FROM messages WHERE chatroom_id=$1
+	SELECT messages.user_id, users.username, messages.chatroom_id, messages.text
+	FROM messages
+	INNER JOIN users ON messages.user_id=users.id
+	WHERE messages.chatroom_id=$1
+	ORDER BY messages.created_at ASC;
 	`
 	rows, err := database.Query(sqlStatement, chatroomID)
 	if err != nil {
@@ -49,6 +53,8 @@ func GetMessagesForRoom(chatroomID int) Messages {
 	var s Messages
 	//count := 0
 
+	fmt.Println("above scan")
+
 	for rows.Next() {
 		var message Message
 		err = rows.Scan(&message.ID, &message.UserID, &message.ChatroomID, &message.Text)
@@ -58,8 +64,10 @@ func GetMessagesForRoom(chatroomID int) Messages {
 		}
 
 		s = append(s, message)
-		//fmt.Println(message)
+		fmt.Println(s)
 	}
+
+	fmt.Println("below scan")
 
 	//count++
 	// get any error encountered during iteration

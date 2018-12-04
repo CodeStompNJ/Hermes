@@ -15,20 +15,36 @@ created: function() {
 
         var self = this;
         this.ws = new WebSocket('ws://' + window.location.host + '/ws');
-        this.ws.addEventListener('message', function(e) {
+        this.ws.addEventListener('message', self.addMessageWS);
+        this.getAndAddChatroomHistory();
+    },
+
+methods: {
+        addMessageWS: function(e) {
             var msg = JSON.parse(e.data);
-            self.chatContent += '<div class="chip">'
-                    + '<img src="' + self.gravatarURL(msg.email) + '">' // Avatar
+            this.chatContent += '<div class="chip">'
+                    + '<img src="' + this.gravatarURL(msg.email) + '">' // Avatar
                     + msg.username
                 + '</div>'
                 + emojione.toImage(msg.message) + '<br/>'; // Parse emojis
 
             var element = document.getElementById('chat-messages');
             element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
-        });
-    },
+        },
 
-methods: {
+        addMessages: function (messages) {
+            messages.forEach(message => {
+                this.chatContent += '<div class="chip">'
+                    + '<img src="http://www.gravatar.com/avatar/7b064dad507c266a161ffc73c53dcdc5">' // Avatar
+                    + message.UserID
+                + '</div>'
+                + emojione.toImage(message.Text) + '<br/>'; // Parse emojis
+            });
+
+            var element = document.getElementById('chat-messages');
+            element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
+        },
+
         send: function () {
             if (this.newMsg != '') {
                 this.ws.send(
@@ -43,8 +59,18 @@ methods: {
             }
         },
 
+        getAndAddChatroomHistory: function () {
+            axios.get('/history')
+                .then((response) => {
+                    console.log(response);
+                    this.addMessages(response.data);
+                }).catch((error) => {
+                    console.log("[ERRRRRRR] Something happened getting history!");
+                    console.log(error);
+                });
+        },
+
         history: function() {
-            debugger;
             axios.get('/history')
                 .then((response) => {
                     debugger;

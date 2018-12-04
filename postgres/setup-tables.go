@@ -68,6 +68,12 @@ func createTables() {
 	/**
 	 *Creating User Table
 	 **/
+	fmt.Println("creating users table...")
+	_, err = database.Exec("DROP TABLE IF EXISTS users cascade")
+	if err != nil {
+		panic(err)
+	}
+
 	createQry = `
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
