@@ -27,6 +27,7 @@ func main() {
 
 	http.HandleFunc("/ws", server.HandleConnections)
 	http.HandleFunc("/history", server.GroupHistory)
+	http.HandleFunc("/user", server.ShowUser)
 
 	//start listening for incoming chat messages
 	go server.HandleMessages()

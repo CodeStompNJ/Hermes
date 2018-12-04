@@ -14,15 +14,6 @@ import (
 	//"github.com/gorilla/websocket"
 )
 
-type Todo struct {
-	Name      string
-	Completed bool
-	Num       int
-}
-
-//Todos - this is a thing
-type Todos []Todo
-
 var clients = make(map[*websocket.Conn]bool) //connected clients
 var broadcast = make(chan MessageTest)       //broadcast channel
 
@@ -36,16 +27,17 @@ type MessageTest struct {
 //configure the upgrader
 var upgrader = websocket.Upgrader{}
 
-func Demo() {
-	fmt.Println("READING FRMO ANOTHER FILE")
-}
-
+//set up HandleFuncs for routing services
 func SetupRouting() {
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
 
 	http.HandleFunc("/ws", HandleConnections)
-	// group routing
+
+	//sends user info to front end
+	http.HandleFunc("/user", ShowUser)
+
+	// group routing, shows history
 	http.HandleFunc("/history", GroupHistory)
 
 	// message routing
@@ -115,28 +107,32 @@ func HandleMessages() {
 	}
 }
 
-func GroupHistory(w http.ResponseWriter, r *http.Request) {
-	// todos := Todos{
-	// 	Todo{Name: "Write presentation", Num: 1},
-	// 	Todo{Name: "Host meetup", Num: 2},
-	// }
-
-	/*sample2 := pg.Messages{
-		pg.Message{ID: 1, text: "Pog"},
-		pg.Message{ID: 2, text: "Champ" },
+func ShowUser(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("IN SHOW USER")
+	//pass in user ID from somewhere, try to get from url, maybe in a form when the link is hit
+	userInfo := pg.ReturnUser(1)
+	fmt.Printf("IN SHOW USER2")
+	//Encode writes the JSON encoding of userInfo to the stream
+	json.NewEncoder(w).Encode(userInfo)
+	fmt.Printf("IN SHOW USER3")
+	//returns json encoding of the data
+	pagesJson, err := json.Marshal(userInfo)
+	fmt.Printf("IN SHOW USER4")
+	if err != nil {
+		log.Fatal("Cannot encode to JSON ", err)
 	}
-	sample3 := pg.Message{ID: 1, text: "Hello"}*/
+
+	fmt.Printf("%s", pagesJson)
+}
+
+func GroupHistory(w http.ResponseWriter, r *http.Request) {
+
 	//pass in group ID from somewhere
-	fmt.Printf("LUL")
 	sample := pg.GetMessagesForRoom(1)
-	//fmt.Printf(string(sample))
-	fmt.Printf("%v", sample)
 
-	//json.NewEncoder(w).Encode(todos)
+	//fmt.Printf("%v", sample)
+
 	json.NewEncoder(w).Encode(sample)
-	//json.NewEncoder(w).Encode(sample3)
-
-	//fmt.Printf("DOING IT")
 
 	pagesJson, err := json.Marshal(sample)
 	if err != nil {

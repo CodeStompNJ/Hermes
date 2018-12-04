@@ -40,7 +40,8 @@ func GetMessagesForRoom(chatroomID int) Messages {
 	SELECT messages.user_id, users.username, messages.chatroom_id, messages.text
 	FROM messages
 	INNER JOIN users ON messages.user_id=users.id
-	WHERE messages.chatroom_id=$1;
+	WHERE messages.chatroom_id=$1
+	ORDER BY messages.created_at ASC;
 	`
 	rows, err := database.Query(sqlStatement, chatroomID)
 	if err != nil {

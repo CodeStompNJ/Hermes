@@ -2,6 +2,15 @@ package postgres
 
 import "fmt"
 
+type User struct {
+	ID        int
+	Username  string
+	Firstname string
+	Lastname  string
+	Email     string
+	Timestamp string
+}
+
 //Create a user and add their info to the DB
 func CreateUser(username string, firstname string, lastname string, email string) {
 	sqlStatement := `
@@ -62,4 +71,27 @@ func DoesUserExist(idEdit int) bool {
 	fmt.Println(count)
 
 	return flag
+}
+
+func ReturnUser(idEdit int) User {
+	sqlStatement := `
+	SELECT *
+	FROM users
+	WHERE id = $1;`
+	row, err := database.Query(sqlStatement, idEdit)
+	if err != nil {
+		panic(err)
+	}
+
+	var s User
+	for row.Next() {
+		err = row.Scan(&s.ID, &s.Username, &s.Firstname, &s.Lastname, &s.Email, &s.Timestamp)
+		if err != nil {
+			// handle this error
+			panic(err)
+		}
+	}
+
+	fmt.Println(s)
+	return s
 }
