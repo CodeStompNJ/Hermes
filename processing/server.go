@@ -45,6 +45,8 @@ func SetupRouting() {
 }
 
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
+	AddCors(&w)
+
 	//Upgrade initial GET request to a websocket
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -108,6 +110,8 @@ func HandleMessages() {
 }
 
 func ShowUser(w http.ResponseWriter, r *http.Request) {
+	AddCors(&w)
+
 	fmt.Printf("IN SHOW USER")
 	//pass in user ID from somewhere, try to get from url, maybe in a form when the link is hit
 	userInfo := pg.ReturnUser(1)
@@ -126,6 +130,7 @@ func ShowUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func GroupHistory(w http.ResponseWriter, r *http.Request) {
+	AddCors(&w)
 
 	//pass in group ID from somewhere
 	sample := pg.GetMessagesForRoom(1)
@@ -154,5 +159,13 @@ func GroupHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 func MessageHandler(w http.ResponseWriter, r *http.Request) {
+	AddCors(&w)
 
+}
+
+func AddCors(w *http.ResponseWriter) {
+	//Allow CORS here By * or specific origin
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
