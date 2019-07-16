@@ -150,3 +150,25 @@ func DeleteMessage(messageID int) {
 	}
 
 }
+func ReturnMessage(messageID int) Message {
+	sqlStatement := `
+		SELECT id, user_id, chatroom_id, text FROM messages
+		WHERE id = $1;
+	`
+	rows, err := database.Query(sqlStatement, messageID)
+	if err != nil {
+		panic(err)
+	}
+
+	var message Message
+	for rows.Next() {
+		err = rows.Scan(&message.ID, &message.UserID, &message.ChatroomID, &message.Text)
+		if err != nil {
+			// handle this error
+			panic(err)
+		}
+	}
+	fmt.Println(message)
+	return message
+
+}

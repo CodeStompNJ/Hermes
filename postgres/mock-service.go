@@ -31,6 +31,8 @@ func SetupMockMessages() {
 		GetMessagesForUser(2)
 		fmt.Println("\nget messages for user 3:")
 		GetMessagesForUser(3)
+		fmt.Println("\nGet message with ID 1:")
+		ReturnMessage(1)
 	} else {
 		fmt.Println("Table can't be initialized: DB is not running!")
 	}
