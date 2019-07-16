@@ -40,6 +40,8 @@ func SetupRouting() {
 	// group routing, shows history
 	http.HandleFunc("/history", GroupHistory)
 
+	http.HandleFunc("/message", CreateNewMessage)
+
 	// message routing
 	http.HandleFunc("/messages", MessageHandler)
 }
@@ -156,6 +158,34 @@ func GroupHistory(w http.ResponseWriter, r *http.Request) {
 	//     log.Fatal("Cannot encode to JSON ", err)
 	// }
 	// fmt.Printf("%s", pagesJson)
+}
+
+func CreateNewMessage(w http.ResponseWriter, r *http.Request) {
+	AddCors(&w)
+	decoder := json.NewDecoder(r.Body)
+	var t MessageTest
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+	log.Println(t.Email)
+	log.Println(t.Username)
+	log.Println(t.Message)
+	log.Println(t.Group)
+
+	// sample := pg.CreateMessage(r.text, r.chatroomId, r.userId)
+	sample := pg.CreateMessage(t.Message, 1, 1) // @TODO - need to pass in chatroom and user correctly.
+
+	json.NewEncoder(w).Encode(sample)
+
+	//returns json encoding of the data
+	pagesJSON, err := json.Marshal(sample)
+	if err != nil {
+		log.Fatal("Cannot encode to JSON ", err)
+	}
+
+	fmt.Printf("%s", sample)
+	fmt.Printf("%s", pagesJSON)
 }
 
 func MessageHandler(w http.ResponseWriter, r *http.Request) {
