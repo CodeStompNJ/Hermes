@@ -23,11 +23,13 @@ func main() {
 	defer pg.CloseDBConnection()
 
 	fs := http.FileServer(http.Dir("./public"))
-	http.Handle("/", fs)
 
+	http.Handle("/", fs)
 	http.HandleFunc("/ws", server.HandleConnections)
 	http.HandleFunc("/history", server.GroupHistory)
 	http.HandleFunc("/user", server.ShowUser)
+	http.HandleFunc("/message", server.CreateNewMessage) // @TODO - make it only available to POST
+	// server.SetupRouter()
 
 	//start listening for incoming chat messages
 	go server.HandleMessages()
