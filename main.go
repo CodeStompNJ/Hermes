@@ -29,6 +29,9 @@ func main() {
 	http.HandleFunc("/history", server.GroupHistory)
 	http.HandleFunc("/user", server.ShowUser)
 	http.HandleFunc("/message", server.CreateNewMessage) // @TODO - make it only available to POST
+	http.HandleFunc("/signin", server.Signin)
+	http.HandleFunc("/welcome", server.Welcome)
+	http.HandleFunc("/refresh", server.Refresh)
 	// server.SetupRouter()
 
 	//start listening for incoming chat messages
