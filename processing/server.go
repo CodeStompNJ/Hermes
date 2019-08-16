@@ -20,11 +20,6 @@ import (
 // Create the JWT key used to create the signature
 var jwtKey = []byte("my_secret_key")
 
-var users = map[string]string{
-	"user1": "password1",
-	"user2": "password2",
-}
-
 // Create a struct to read the username and password from the request body
 type Credentials struct {
 	Password string `json:"password"`
