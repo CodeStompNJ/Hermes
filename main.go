@@ -32,6 +32,7 @@ func main() {
 	http.HandleFunc("/signin", server.Signin)
 	http.HandleFunc("/welcome", server.Welcome)
 	http.HandleFunc("/refresh", server.Refresh)
+	http.HandleFunc("/register", server.Register)
 	// server.SetupRouter()
 
 	//start listening for incoming chat messages

@@ -29,7 +29,7 @@ func CreateMessage(text string, chatroomID int, userID int) int {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("New record ID is:", id)
+	//fmt.Println("New record ID is:", id)
 
 	return id
 }
@@ -53,7 +53,6 @@ func GetMessagesForRoom(chatroomID int) Messages {
 	var s Messages
 	//count := 0
 
-	fmt.Println("above scan")
 
 	for rows.Next() {
 		var message Message
@@ -64,10 +63,9 @@ func GetMessagesForRoom(chatroomID int) Messages {
 		}
 
 		s = append(s, message)
-		fmt.Println(s)
+		// fmt.Println(s)
 	}
 
-	fmt.Println("below scan")
 
 	//count++
 	// get any error encountered during iteration
@@ -96,7 +94,7 @@ func GetMessagesForUser(userID int) {
 			// handle this error
 			panic(err)
 		}
-		fmt.Println(message)
+		// fmt.Println(message)
 	}
 	// get any error encountered during iteration
 	err = rows.Err()
@@ -124,7 +122,7 @@ func GetMessagesForUserAndRoom(userID int, chatroomID int) {
 			// handle this error
 			panic(err)
 		}
-		fmt.Println(message)
+		// fmt.Println(message)
 	}
 	// get any error encountered during iteration
 	err = rows.Err()
