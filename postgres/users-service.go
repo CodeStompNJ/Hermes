@@ -1,10 +1,13 @@
 package postgres
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type User struct {
 	ID        int
 	Username  string
+	Password  string
 	Firstname string
 	Lastname  string
 	Email     string
@@ -12,13 +15,13 @@ type User struct {
 }
 
 //Create a user and add their info to the DB
-func CreateUser(username string, firstname string, lastname string, email string) {
+func CreateUser(username string, firstname string, lastname string, email string, password string) {
 	sqlStatement := `
-	INSERT INTO users (username, firstname, lastname, email)
-	VALUES ($1, $2, $3, $4)
+	INSERT INTO users (username, firstname, lastname, email, password)
+	VALUES ($1, $2, $3, $4, $5)
 	RETURNING id`
 	var id int
-	err := database.QueryRow(sqlStatement, username, firstname, lastname, email).Scan(&id)
+	err := database.QueryRow(sqlStatement, username, firstname, lastname, email, password).Scan(&id)
 	if err != nil {
 		fmt.Println("user failed to create: ", sqlStatement)
 		panic(err)
@@ -39,6 +42,32 @@ func EditUser(idEdit int, usernameEdit string, firstnameEdit string, lastnameEdi
 	}
 	fmt.Println("New record ID is:", id)
 
+}
+
+func ValidUser(username string, password string) bool {
+	sqlStatement := `
+	SELECT * FROM users
+	where username = $1 AND password = $2;
+	`
+	row, err := database.Query(sqlStatement, username, password)
+	if err != nil {
+		panic(err)
+	}
+
+	var s User
+	for row.Next() {
+		err = row.Scan(&s.ID, &s.Username, &s.Firstname, &s.Lastname, &s.Email, &s.Timestamp, &s.Password)
+		if err != nil {
+			// handle this error
+			panic(err)
+		}
+	}
+
+	if s.ID != 0 {
+		return true
+	}
+
+	return false
 }
 
 func DeleteUser(idEdit int) {

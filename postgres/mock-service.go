@@ -42,9 +42,9 @@ func SetupMockMessages() {
 func CreateMockUsers() {
 	if initialized {
 		fmt.Println("creating users")
-		CreateUser("jbond", "James", "Bond", "james.bond@mail.me.the.stuff.com")
-		CreateUser("freeman", "Mr", "Freeman", "freedman@themail-house.com")
-		CreateUser("dennis", "the", "menace", "dman@housing.com")
+		CreateUser("jbond", "James", "Bond", "james.bond@mail.me.the.stuff.com", "password1")
+		CreateUser("freeman", "Mr", "Freeman", "freedman@themail-house.com", "password2")
+		CreateUser("dennis", "the", "menace", "dman@housing.com", "password3")
 		fmt.Println("creating users done")
 	} else {
 		fmt.Println("Table can't be initialized: DB is not running!")

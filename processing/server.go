@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"github.com/dgrijalva/jwt-go"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 
 	pg "../postgres"
 
@@ -230,13 +231,16 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// @TODO - need to validate creds before hitting db
+	valid := pg.ValidUser(creds.Username, creds.Password)
+
 	// Get the expected password from our in memory map
-	expectedPassword, ok := users[creds.Username]
+	// expectedPassword, ok := users[creds.Username]
 
 	// If a password exists for the given user
 	// AND, if it is the same as the password we received, the we can move ahead
 	// if NOT, then we return an "Unauthorized" status
-	if !ok || expectedPassword != creds.Password {
+	if !valid {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
