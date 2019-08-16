@@ -47,6 +47,12 @@ type MessageTest struct {
 	Group    string `json:"group"`
 }
 
+type registerTest struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password  string `json:"password"`
+}
+
 //configure the upgrader
 var upgrader = websocket.Upgrader{}
 
@@ -65,12 +71,16 @@ func SetupRouting() {
 
 	http.HandleFunc("/message", CreateNewMessage)
 
-	http.HandleFunc("/signin", Signin)
-
 	// message routing
 	http.HandleFunc("/messages", MessageHandler)
+
+	//JWT endpoints
+	http.HandleFunc("/signin", Signin)
 	http.HandleFunc("/welcome", Welcome)
 	http.HandleFunc("/refresh", Refresh)
+
+	//registration
+	http.HandleFunc("/register", Register)
 }
 
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
@@ -231,6 +241,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get the expected password from our in memory map
+	// Nick - this should be where we search db for the user and see if with that cred it can login
 	expectedPassword, ok := users[creds.Username]
 
 	// If a password exists for the given user
@@ -374,6 +385,21 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		Value:   tokenString,
 		Expires: expirationTime,
 	})
+}
+
+func Register(w http.ResponseWriter, r *http.Request) {
+	AddCors(&w)
+	fmt.Printf("IN register")
+	decoder := json.NewDecoder(r.Body)
+	var t registerTest
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println(t.Email)
+	log.Println(t.Username)
+	log.Println(t.Password)
 }
 
 func MessageHandler(w http.ResponseWriter, r *http.Request) {
