@@ -42,30 +42,6 @@ func createTables() {
 	}
 
 	/**
-	* Messages setup
-	 */
-	fmt.Println("creating messages table...")
-	_, err = database.Exec("DROP TABLE IF EXISTS messages cascade")
-	if err != nil {
-		panic(err)
-	}
-
-	createQry = `
-	CREATE TABLE IF NOT EXISTS messages (
-		id SERIAL PRIMARY KEY,
-		chatroom_id INTEGER NOT NULL,
-		user_id INTEGER NOT NULL,
-		text TEXT NOT NULL,
-		created_at TIMESTAMP with time zone DEFAULT current_timestamp,
-		FOREIGN KEY (chatroom_id) REFERENCES chatroom (id),
-		FOREIGN KEY (user_id) REFERENCES users (id)
-	)`
-	_, err = database.Exec(createQry)
-	if err != nil {
-		panic(err)
-	}
-
-	/**
 	 *Creating User Table
 	 **/
 	fmt.Println("creating users table...")
@@ -80,9 +56,34 @@ func createTables() {
         username TEXT NOT NULL,
         firstname TEXT,
         lastname TEXT,
-        email TEXT NOT NULL,
+		email TEXT NOT NULL,
+		password TEXT,
         created_at TIMESTAMP with time zone DEFAULT current_timestamp
     )`
+	_, err = database.Exec(createQry)
+	if err != nil {
+		panic(err)
+	}
+
+	/**
+	* Messages setup
+	 */
+	fmt.Println("creating messages table...")
+	_, err = database.Exec("DROP TABLE IF EXISTS messages cascade")
+	if err != nil {
+		panic(err)
+	}
+
+	createQry = `
+	 CREATE TABLE IF NOT EXISTS messages (
+		 id SERIAL PRIMARY KEY,
+		 chatroom_id INTEGER NOT NULL,
+		 user_id INTEGER NOT NULL,
+		 text TEXT NOT NULL,
+		 created_at TIMESTAMP with time zone DEFAULT current_timestamp,
+		 FOREIGN KEY (chatroom_id) REFERENCES chatroom (id),
+		 FOREIGN KEY (user_id) REFERENCES users (id)
+	 )`
 	_, err = database.Exec(createQry)
 	if err != nil {
 		panic(err)
