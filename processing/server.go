@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"gopkg.in/go-playground/validator.v9"
 	"github.com/dgrijalva/jwt-go"
 
 	pg "../postgres"
@@ -44,9 +45,9 @@ type MessageTest struct {
 }
 
 type registerTest struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Email    string `json:"email" validate:"required,email"`
+	Username string `json:"username" validate:"required,min=3"`
+	Password string `json:"password" validate:"required,min=6"`
 }
 
 //configure the upgrader
@@ -394,10 +395,22 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+	// create a validator that we'll be using to validate our user values with
+	v := validator.New()
 
-	log.Println(t.Email)
-	log.Println(t.Username)
-	log.Println(t.Password)
+	/* With the values we've gotten from the front end we place them in a struct
+	that we'll compare out validators to. If it fails we push the error to
+	the console else we create the user in the DB. @TODO have a way to return 
+	the error to the front end so we can express what wen wrong to the user.
+	Also will need to validate that values dont already exist in DB, */
+	if e := v.Struct(t); e != nil {
+		fmt.Println("Validation failed:", e)
+	} else {
+		// right now not sending firstname and lastname
+		// need to decide if it's something we want to keep or cut from the registerUser struct
+		pg.CreateUser(t.Username,"firstname","lastname",t.Email,t.Password)
+	}
+
 }
 
 func MessageHandler(w http.ResponseWriter, r *http.Request) {
