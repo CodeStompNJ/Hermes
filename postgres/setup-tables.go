@@ -53,7 +53,7 @@ func createTables() {
 	createQry = `
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        username TEXT NOT NULL,
+        username TEXT UNIQUE NOT NULL,
         firstname TEXT,
         lastname TEXT,
 		email TEXT NOT NULL,

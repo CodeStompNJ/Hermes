@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 )
 
 type User struct {
@@ -14,8 +15,9 @@ type User struct {
 	Timestamp string
 }
 
-//Create a user and add their info to the DB
-func CreateUser(username string, firstname string, lastname string, email string, password string) {
+// Create a user and add their info to the DB
+func CreateUser(username string, firstname string, lastname string, email string, password string) string {
+	result := "success"
 	sqlStatement := `
 	INSERT INTO users (username, firstname, lastname, email, password)
 	VALUES ($1, $2, $3, $4, $5)
@@ -24,9 +26,16 @@ func CreateUser(username string, firstname string, lastname string, email string
 	err := database.QueryRow(sqlStatement, username, firstname, lastname, email, password).Scan(&id)
 	if err != nil {
 		fmt.Println("user failed to create: ", sqlStatement)
-		panic(err)
+		//panic(err.Error)
 	}
+	if err, ok := err.(*pq.Error); ok {
+		fmt.Println(" pq error:", err.Code.Name())
+		result = err.Code.Name()
+	}
+
 	fmt.Println("New user record ID is:", id)
+
+	return result
 
 }
 

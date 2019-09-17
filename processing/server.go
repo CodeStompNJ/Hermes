@@ -50,6 +50,10 @@ type registerTest struct {
 	Password string `json:"password" validate:"required,min=6"`
 }
 
+type resultMessage struct {
+	Result    string `json:"result"`
+}
+
 //configure the upgrader
 var upgrader = websocket.Upgrader{}
 
@@ -226,8 +230,6 @@ func CreateNewMessage(w http.ResponseWriter, r *http.Request) {
 // Create the Signin handler
 func Signin(w http.ResponseWriter, r *http.Request) {
 	AddCors(&w)
-	fmt.Printf("got here lul")
-	log.Println("omegalul")
 	var creds Credentials
 	// Get the JSON body and decode into credentials
 	err := json.NewDecoder(r.Body).Decode(&creds)
@@ -397,18 +399,33 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 	// create a validator that we'll be using to validate our user values with
 	v := validator.New()
-
 	/* With the values we've gotten from the front end we place them in a struct
 	that we'll compare out validators to. If it fails we push the error to
 	the console else we create the user in the DB. @TODO have a way to return 
 	the error to the front end so we can express what wen wrong to the user.
 	Also will need to validate that values dont already exist in DB, */
 	if e := v.Struct(t); e != nil {
-		fmt.Println("Validation failed:", e)
+		for _, e := range err.(validator.ValidationErrors) {
+			fmt.Println(e)
+		}
+		w.WriteHeader(http.StatusBadRequest)
 	} else {
 		// right now not sending firstname and lastname
 		// need to decide if it's something we want to keep or cut from the registerUser struct
-		pg.CreateUser(t.Username,"firstname","lastname",t.Email,t.Password)
+		resultStatus := pg.CreateUser(t.Username,"firstname","lastname",t.Email,t.Password)
+		fmt.Println(resultStatus)
+		//success will have boolean value if there was success or not
+		var structInst resultMessage
+		structInst.Result = resultStatus
+		if resultStatus != "success" {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		json.NewEncoder(w).Encode(structInst)
+		
+		//returns json encoding of the data
+		
+		//w.WriteHeader(200)
+		//json.NewEncoder(w).Encode(sample)
 	}
 
 }
