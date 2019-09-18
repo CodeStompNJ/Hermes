@@ -395,6 +395,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	var t registerTest
 	err := decoder.Decode(&t)
 	if err != nil {
+		//Panic here if there's an issue decoding the data
 		panic(err)
 	}
 	// create a validator that we'll be using to validate our user values with
@@ -405,7 +406,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	the error to the front end so we can express what wen wrong to the user.
 	Also will need to validate that values dont already exist in DB, */
 	if e := v.Struct(t); e != nil {
-		for _, e := range err.(validator.ValidationErrors) {
+		for _, e := range e.(validator.ValidationErrors) {
+			fmt.Print("Validation Error ")
 			fmt.Println(e)
 		}
 		w.WriteHeader(http.StatusBadRequest)
