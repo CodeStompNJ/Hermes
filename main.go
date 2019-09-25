@@ -25,7 +25,7 @@ func main() {
 	fs := http.FileServer(http.Dir("./public"))
 
 	http.Handle("/", fs)
-	http.HandleFunc("/ws", server.HandleConnections)
+	http.HandleFunc("/ws", server.SocketMessage)
 	http.HandleFunc("/history", server.GroupHistory)
 	http.HandleFunc("/user", server.ShowUser)
 	http.HandleFunc("/message", server.CreateNewMessage) // @TODO - make it only available to POST
@@ -36,7 +36,7 @@ func main() {
 	// server.SetupRouter()
 
 	//start listening for incoming chat messages
-	go server.HandleMessages()
+	go server.SetupWebSocket()
 
 	//start the server on local host port 8000 and log any errors
 	log.Println("https server started on :8000")

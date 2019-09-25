@@ -10,6 +10,7 @@ import (
 
 	"gopkg.in/go-playground/validator.v9"
 	"github.com/dgrijalva/jwt-go"
+	uuid "github.com/satori/go.uuid"
 
 	pg "../postgres"
 
@@ -34,8 +35,36 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-var clients = make(map[*websocket.Conn]bool) //connected clients
-var broadcast = make(chan MessageTest)       //broadcast channel
+// ****************************************************************************
+// 								WebSocket Stuff
+// ****************************************************************************
+type ClientManager struct {
+	clients    map[*Client]bool
+	broadcast  chan []byte
+	register   chan *Client
+	unregister chan *Client
+}
+
+type Client struct {
+	id     string
+	socket *websocket.Conn
+	send   chan []byte
+}
+
+type Message struct {
+	Sender    string `json:"sender,omitempty"`
+	Recipient string `json:"recipient,omitempty"`
+	Content   string `json:"content,omitempty"`
+	Type      string `json:"type,omitempty"`
+}
+
+// global manager for websocket management
+var manager = ClientManager{
+	broadcast:  make(chan []byte),
+	register:   make(chan *Client),
+	unregister: make(chan *Client),
+	clients:    make(map[*Client]bool),
+}
 
 type MessageTest struct {
 	Email    string `json:"email"`
@@ -55,14 +84,20 @@ type resultMessage struct {
 }
 
 //configure the upgrader
-var upgrader = websocket.Upgrader{}
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true // @todo - just block webserver, and not allow everything
+	},
+}
 
-//set up HandleFuncs for routing services
+// SetupRouting - set up HandleFuncs for routing services
 func SetupRouting() {
 	fs := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fs)
 
-	http.HandleFunc("/ws", HandleConnections)
+	// http.HandleFunc("/ws", HandleConnections)
 
 	//sends user info to front end
 	http.HandleFunc("/user", ShowUser)
@@ -84,69 +119,113 @@ func SetupRouting() {
 	http.HandleFunc("/register", Register)
 }
 
-func HandleConnections(w http.ResponseWriter, r *http.Request) {
-	AddCors(&w)
-
-	//Upgrade initial GET request to a websocket
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	//Close the connection when the function returns
-	defer ws.Close()
-
-	//Register clients
-	clients[ws] = true
-
-	for {
-		var msg MessageTest
-
-		//Read in a new message as JSON and map it to the Message object
-		err := ws.ReadJSON(&msg)
-		if err != nil {
-			log.Printf("error: %v", err)
-			delete(clients, ws)
-			break
-		}
-
-		broadcast <- msg
-	}
+// SetupWebSocket used to start manager
+func SetupWebSocket() {
+	manager.start()
 }
 
-func HandleMessages() {
+func (manager *ClientManager) start() {
 	for {
-		//Grab the next message from the broadcast channel
-
-		msg := <-broadcast
-
-		regExMesg := msg.Message
-
-		//gross
-		cmds := []string{"!!age;", "!!name;", "!!hello;"}
-
-		for _, cmds := range cmds {
-			regExMesg = replaceCommands(regExMesg, cmds)
-		}
-
-		//retrieve user
-		//retrieve group ?
-
-		//Probably should deal with regex outside of server.go
-		msg.Message = regExMesg
-
-		pg.CreateMessage(msg.Message, 1, 1)
-
-		//Send it to every client that is connected
-		for client := range clients {
-			err := client.WriteJSON(msg)
-			if err != nil {
-				log.Printf("error: %v", err)
-				client.Close()
-				delete(clients, client)
+		select {
+		case conn := <-manager.register:
+			manager.clients[conn] = true
+			jsonMessage, _ := json.Marshal(&Message{Content: "/A new socket has connected.", Type: "new_client"})
+			manager.send(jsonMessage, conn)
+		case conn := <-manager.unregister:
+			if _, ok := manager.clients[conn]; ok {
+				close(conn.send)
+				delete(manager.clients, conn)
+				jsonMessage, _ := json.Marshal(&Message{Content: "/A socket has disconnected.", Type: "client_leaving"})
+				manager.send(jsonMessage, conn)
+			}
+		case message := <-manager.broadcast:
+			for conn := range manager.clients {
+				// send to all clients; includes sending to posting client.
+				select {
+				case conn.send <- message:
+				default:
+					close(conn.send)
+					delete(manager.clients, conn)
+				}
 			}
 		}
 	}
+}
+
+func (manager *ClientManager) send(message []byte, ignore *Client) {
+	for conn := range manager.clients {
+		if conn != ignore {
+			conn.send <- message
+		}
+	}
+}
+
+func (c *Client) read() {
+	defer func() {
+		manager.unregister <- c
+		c.socket.Close()
+	}()
+
+	for {
+		_, message, err := c.socket.ReadMessage()
+		if err != nil {
+			manager.unregister <- c
+			c.socket.Close()
+			break
+		}
+		stringMessage := getStringFromBytes(message)
+		pg.CreateMessage(stringMessage, 1, 1)
+		jsonMessage, _ := json.Marshal(&Message{Sender: c.id, Content: stringMessage, Type: "message"})
+		manager.broadcast <- jsonMessage
+	}
+}
+
+func getStringFromBytes(bytes []byte) string {
+	if len(bytes) > 0 && bytes[0] == '"' {
+		bytes = bytes[1:]
+	}
+	if len(bytes) > 0 && bytes[len(bytes)-1] == '"' {
+		bytes = bytes[:len(bytes)-1]
+	}
+	stringMessage := string(bytes[:])
+	return stringMessage
+}
+
+func (c *Client) write() {
+	defer func() {
+		c.socket.Close()
+	}()
+
+	for {
+		select {
+		case message, ok := <-c.send:
+			if !ok {
+				c.socket.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+
+			c.socket.WriteMessage(websocket.TextMessage, message)
+		}
+	}
+}
+
+func SocketMessage(res http.ResponseWriter, req *http.Request) {
+	conn, error := (&websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}).Upgrade(res, req, nil)
+	if error != nil {
+		http.NotFound(res, req)
+		return
+	}
+	u, err := uuid.NewV4()
+	if err != nil {
+		panic(err)
+	}
+
+	client := &Client{id: u.String(), socket: conn, send: make(chan []byte)}
+
+	manager.register <- client
+
+	go client.read()
+	go client.write()
 }
 
 func ShowUser(w http.ResponseWriter, r *http.Request) {
@@ -213,17 +292,17 @@ func CreateNewMessage(w http.ResponseWriter, r *http.Request) {
 	log.Println(t.Group)
 
 	// sample := pg.CreateMessage(r.text, r.chatroomId, r.userId)
-	sample := pg.CreateMessage(t.Message, 1, 1) // @TODO - need to pass in chatroom and user correctly.
+	message := pg.CreateMessage(t.Message, 1, 1) // @TODO - need to pass in chatroom and user correctly.
 
-	json.NewEncoder(w).Encode(sample)
+	json.NewEncoder(w).Encode(message)
 
 	//returns json encoding of the data
-	pagesJSON, err := json.Marshal(sample)
+	pagesJSON, err := json.Marshal(message)
 	if err != nil {
 		log.Fatal("Cannot encode to JSON ", err)
 	}
 
-	fmt.Printf("%s", sample)
+	fmt.Printf("%s", message)
 	fmt.Printf("%s", pagesJSON)
 }
 
