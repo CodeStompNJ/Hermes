@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"strconv"
 
 	"gopkg.in/go-playground/validator.v9"
 	"github.com/dgrijalva/jwt-go"
@@ -286,13 +287,15 @@ func CreateNewMessage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	log.Println(t.Email)
-	log.Println(t.Username)
-	log.Println(t.Message)
-	log.Println(t.Group)
 
-	// sample := pg.CreateMessage(r.text, r.chatroomId, r.userId)
-	message := pg.CreateMessage(t.Message, 1, 1) // @TODO - need to pass in chatroom and user correctly.
+	groupID, ok := strconv.Atoi(t.Group)
+	usernameID, ok := strconv.Atoi(t.Username)
+
+	if ok != nil {
+		log.Println("conversion error")
+	 }
+
+	message := pg.CreateMessage(t.Message, groupID, usernameID)
 
 	json.NewEncoder(w).Encode(message)
 
