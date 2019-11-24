@@ -186,7 +186,7 @@ func (c *Client) read() {
 		if err != nil {
 			fmt.Println("error:", err)
 		}
-		fmt.Printf("%+v  HELLO!!!", messageHolder)
+		fmt.Printf("%+v", messageHolder)
 
 		pg.CreateMessage(messageHolder.Message, messageHolder.GroupID, messageHolder.UserID)
 		jsonMessage, _ := json.Marshal(&StructContract{Sender: c.id, Content: messageHolder.Message, Type: "message"})
