@@ -16,7 +16,7 @@ import (
 	pg "../postgres"
 
 	"github.com/gorilla/websocket"
-	//"github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 	//"github.com/gorilla/websocket"
 )
 
@@ -229,6 +229,9 @@ func SocketMessage(res http.ResponseWriter, req *http.Request) {
 	go client.write()
 }
 
+
+//this is an artifact function and not currently being used as an endpoint
+//however, we're keeping it for now to be used later
 func ShowUser(w http.ResponseWriter, r *http.Request) {
 	AddCors(&w)
 
@@ -253,7 +256,14 @@ func GroupHistory(w http.ResponseWriter, r *http.Request) {
 	AddCors(&w)
 
 	//pass in group ID from somewhere
-	sample := pg.GetMessagesForRoom(1)
+
+	vars := mux.Vars(r)
+
+	groupID, ok := strconv.Atoi(vars["groupID"])
+
+	// TODO: add error check here.
+	println(ok)
+	sample := pg.GetMessagesForRoom(groupID)
 
 	//fmt.Printf("%v", sample)
 
