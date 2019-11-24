@@ -23,19 +23,6 @@ func main() {
 	pg.SetupDB()
 	defer pg.CloseDBConnection()
 
-	//fs := http.FileServer(http.Dir("./public"))
-
-	// http.Handle("/", fs)
-	// http.HandleFunc("/ws", server.SocketMessage)
-	// http.HandleFunc("/history", server.GroupHistory)
-	// http.HandleFunc("/user", server.ShowUser)
-	// http.HandleFunc("/message", server.CreateNewMessage) // @TODO - make it only available to POST
-	// http.HandleFunc("/signin", server.Signin)
-	// http.HandleFunc("/welcome", server.Welcome)
-	// http.HandleFunc("/refresh", server.Refresh)
-	// http.HandleFunc("/register", server.Register)
-	// server.SetupRouter()
-
 	r := mux.NewRouter()
 	r.HandleFunc("/ws", server.SocketMessage)
 	r.HandleFunc("/history/{groupID:[0-9]+}", server.GroupHistory)
