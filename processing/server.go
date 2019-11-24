@@ -16,7 +16,7 @@ import (
 	pg "../postgres"
 
 	"github.com/gorilla/websocket"
-	"github.com/gorilla/mux"
+	//"github.com/gorilla/mux"
 	//"github.com/gorilla/websocket"
 )
 
@@ -175,6 +175,15 @@ func (c *Client) read() {
 			break
 		}
 		stringMessage := getStringFromBytes(message)
+
+		
+		var messageHolder Message
+		err = json.Unmarshal(message, &messageHolder)
+		if err != nil {
+			fmt.Println("error:", err)
+		}
+		fmt.Printf("%+v  HELLO!!!", messageHolder)
+
 		pg.CreateMessage(stringMessage, 1, 1)
 		jsonMessage, _ := json.Marshal(&Message{Sender: c.id, Content: stringMessage, Type: "message"})
 		manager.broadcast <- jsonMessage
@@ -229,9 +238,6 @@ func SocketMessage(res http.ResponseWriter, req *http.Request) {
 	go client.write()
 }
 
-
-//this is an artifact function and not currently being used as an endpoint
-//however, we're keeping it for now to be used later
 func ShowUser(w http.ResponseWriter, r *http.Request) {
 	AddCors(&w)
 
@@ -256,14 +262,7 @@ func GroupHistory(w http.ResponseWriter, r *http.Request) {
 	AddCors(&w)
 
 	//pass in group ID from somewhere
-
-	vars := mux.Vars(r)
-
-	groupID, ok := strconv.Atoi(vars["groupID"])
-
-	// TODO: add error check here.
-	println(ok)
-	sample := pg.GetMessagesForRoom(groupID)
+	sample := pg.GetMessagesForRoom(1)
 
 	//fmt.Printf("%v", sample)
 
