@@ -262,8 +262,6 @@ func GroupHistory(w http.ResponseWriter, r *http.Request) {
 	groupID, ok := strconv.Atoi(vars["groupID"])
 
 	println(ok)
-	//groupID := getGroupFromUI()
-	//groupID := 1
 	sample := pg.GetMessagesForRoom(groupID)
 
 	//fmt.Printf("%v", sample)
