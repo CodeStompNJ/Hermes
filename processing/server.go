@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 	"strconv"
+	"time"
 
-	"gopkg.in/go-playground/validator.v9"
 	"github.com/dgrijalva/jwt-go"
 	uuid "github.com/satori/go.uuid"
+	"gopkg.in/go-playground/validator.v9"
 
 	pg "../postgres"
 
-	"github.com/gorilla/websocket"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	//"github.com/gorilla/websocket"
 )
 
@@ -52,7 +52,7 @@ type Client struct {
 	send   chan []byte
 }
 
-type Message struct {
+type StructContract struct {
 	Sender    string `json:"sender,omitempty"`
 	Recipient string `json:"recipient,omitempty"`
 	Content   string `json:"content,omitempty"`
@@ -81,7 +81,7 @@ type registerTest struct {
 }
 
 type resultMessage struct {
-	Result    string `json:"result"`
+	Result string `json:"result"`
 }
 
 //configure the upgrader
@@ -130,13 +130,13 @@ func (manager *ClientManager) start() {
 		select {
 		case conn := <-manager.register:
 			manager.clients[conn] = true
-			jsonMessage, _ := json.Marshal(&Message{Content: "/A new socket has connected.", Type: "new_client"})
+			jsonMessage, _ := json.Marshal(&StructContract{Content: "/A new socket has connected.", Type: "new_client"})
 			manager.send(jsonMessage, conn)
 		case conn := <-manager.unregister:
 			if _, ok := manager.clients[conn]; ok {
 				close(conn.send)
 				delete(manager.clients, conn)
-				jsonMessage, _ := json.Marshal(&Message{Content: "/A socket has disconnected.", Type: "client_leaving"})
+				jsonMessage, _ := json.Marshal(&StructContract{Content: "/A socket has disconnected.", Type: "client_leaving"})
 				manager.send(jsonMessage, conn)
 			}
 		case message := <-manager.broadcast:
@@ -176,7 +176,7 @@ func (c *Client) read() {
 		}
 		stringMessage := getStringFromBytes(message)
 		pg.CreateMessage(stringMessage, 1, 1)
-		jsonMessage, _ := json.Marshal(&Message{Sender: c.id, Content: stringMessage, Type: "message"})
+		jsonMessage, _ := json.Marshal(&StructContract{Sender: c.id, Content: stringMessage, Type: "message"})
 		manager.broadcast <- jsonMessage
 	}
 }
@@ -228,7 +228,6 @@ func SocketMessage(res http.ResponseWriter, req *http.Request) {
 	go client.read()
 	go client.write()
 }
-
 
 //this is an artifact function and not currently being used as an endpoint
 //however, we're keeping it for now to be used later
@@ -303,7 +302,7 @@ func CreateNewMessage(w http.ResponseWriter, r *http.Request) {
 
 	if ok != nil {
 		log.Println("conversion error")
-	 }
+	}
 
 	message := pg.CreateMessage(t.Message, groupID, usernameID)
 
@@ -494,7 +493,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	v := validator.New()
 	/* With the values we've gotten from the front end we place them in a struct
 	that we'll compare out validators to. If it fails we push the error to
-	the console else we create the user in the DB. @TODO have a way to return 
+	the console else we create the user in the DB. @TODO have a way to return
 	the error to the front end so we can express what wen wrong to the user.
 	Also will need to validate that values dont already exist in DB, */
 	if e := v.Struct(t); e != nil {
@@ -506,7 +505,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// right now not sending firstname and lastname
 		// need to decide if it's something we want to keep or cut from the registerUser struct
-		resultStatus := pg.CreateUser(t.Username,"firstname","lastname",t.Email,t.Password)
+		resultStatus := pg.CreateUser(t.Username, "firstname", "lastname", t.Email, t.Password)
 		fmt.Println(resultStatus)
 		//success will have boolean value if there was success or not
 		var structInst resultMessage
@@ -515,9 +514,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 		json.NewEncoder(w).Encode(structInst)
-		
+
 		//returns json encoding of the data
-		
+
 		//w.WriteHeader(200)
 		//json.NewEncoder(w).Encode(sample)
 	}
