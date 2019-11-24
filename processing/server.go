@@ -15,7 +15,6 @@ import (
 
 	pg "../postgres"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	//"github.com/gorilla/websocket"
 )
@@ -175,6 +174,14 @@ func (c *Client) read() {
 			break
 		}
 		stringMessage := getStringFromBytes(message)
+
+		var messageHolder StructContract
+		err = json.Unmarshal(message, &messageHolder)
+		if err != nil {
+			fmt.Println("error:", err)
+		}
+		fmt.Printf("%+v  HELLO!!!", messageHolder)
+
 		pg.CreateMessage(stringMessage, 1, 1)
 		jsonMessage, _ := json.Marshal(&StructContract{Sender: c.id, Content: stringMessage, Type: "message"})
 		manager.broadcast <- jsonMessage
@@ -255,14 +262,7 @@ func GroupHistory(w http.ResponseWriter, r *http.Request) {
 	AddCors(&w)
 
 	//pass in group ID from somewhere
-
-	vars := mux.Vars(r)
-
-	groupID, ok := strconv.Atoi(vars["groupID"])
-
-	// TODO: add error check here.
-	println(ok)
-	sample := pg.GetMessagesForRoom(groupID)
+	sample := pg.GetMessagesForRoom(1)
 
 	//fmt.Printf("%v", sample)
 
