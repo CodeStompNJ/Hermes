@@ -59,6 +59,12 @@ type StructContract struct {
 	Type      string `json:"type,omitempty"`
 }
 
+type Message struct {
+	Message string `json:"message"`
+	GroupID int    `json:"groupID"`
+	UserID  int    `json:"userID"`
+}
+
 // global manager for websocket management
 var manager = ClientManager{
 	broadcast:  make(chan []byte),
@@ -174,17 +180,16 @@ func (c *Client) read() {
 			c.socket.Close()
 			break
 		}
-		stringMessage := getStringFromBytes(message)
 
-		var messageHolder StructContract
+		var messageHolder Message
 		err = json.Unmarshal(message, &messageHolder)
 		if err != nil {
 			fmt.Println("error:", err)
 		}
 		fmt.Printf("%+v  HELLO!!!", messageHolder)
 
-		pg.CreateMessage(stringMessage, 1, 1)
-		jsonMessage, _ := json.Marshal(&StructContract{Sender: c.id, Content: stringMessage, Type: "message"})
+		pg.CreateMessage(messageHolder.Message, messageHolder.GroupID, messageHolder.UserID)
+		jsonMessage, _ := json.Marshal(&StructContract{Sender: c.id, Content: messageHolder.Message, Type: "message"})
 		manager.broadcast <- jsonMessage
 	}
 }
